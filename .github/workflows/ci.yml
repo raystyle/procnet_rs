@@ -33,3 +33,7 @@ jobs:
       - name: Smoke (macos lsof)
         if: matrix.target == 'aarch64-apple-darwin'
         run: cargo run --release --target aarch64-apple-darwin -- snapshot | head -2
+      - uses: actions/upload-artifact@v4
+        with:
+          name: procnet-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/procnet
