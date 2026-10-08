@@ -1,0 +1,12 @@
+[Unit]
+Description=Vector observability pipeline (procnet -> ClickHouse)
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/vector --config /etc/vector/vector.toml
+EnvironmentFile=-/etc/vector/vector.env
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

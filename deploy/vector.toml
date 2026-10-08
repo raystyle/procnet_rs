@@ -1,0 +1,27 @@
+# procnet 采集管道(REQ-076):exec source → VRL 富化 → ClickHouse nsm.proc_conns
+[sources.procnet]
+type = "exec"
+mode = "streaming"
+command = ["/usr/local/bin/procnet", "watch", "--interval", "30"]
+decoding.codec = "json"
+framing.method = "newline_delimited"
+
+[transforms.enrich]
+type = "remap"
+inputs = ["procnet"]
+source = '''
+.host = get_hostname!()
+'''
+
+[sinks.clickhouse]
+type = "clickhouse"
+inputs = ["enrich"]
+endpoint = "http://192.168.88.175:8123"
+database = "nsm"
+table = "proc_conns"
+auth.strategy = "basic"
+auth.user = "vector_writer"
+auth.password = "${VECTOR_CH_PASSWORD}"
+format = "json_each_row"
+skip_unknown_fields = true
+batch.timeout_secs = 5
