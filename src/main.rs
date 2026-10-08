@@ -10,6 +10,24 @@ fn emit(lookup: &dyn procnet::host::ProcessLookup, host: &str) -> anyhow::Result
     let stdout = std::io::stdout();
     let mut out = stdout.lock();
     let mut n = 0;
+    // UDP 远端提示(windows ETW 面;快照表道 UDP 无远端):与快照行合流输出
+    for (proto, la, ra, pid, name) in lookup.udp_remote_hints() {
+        let line = json!({
+            "host": host,
+            "ts": chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Millis, true),
+            "proto": format!("{}", proto),
+            "local_ip": la.ip().to_string(),
+            "local_port": la.port(),
+            "remote_ip": ra.ip().to_string(),
+            "remote_port": ra.port(),
+            "state": "UDP_ETW",
+            "pid": pid,
+            "name": name,
+            "uid": Option::<u32>::None,
+        });
+        writeln!(out, "{line}")?;
+        n += 1;
+    }
     for s in snap.sockets.iter() {
         let owner = &s.owner;
         let line = json!({
@@ -69,13 +87,15 @@ fn main() -> anyhow::Result<()> {
         usage();
     }
     let host = if host.is_empty() { hostname_default() } else { host };
-    let lookup = create_process_lookup(false)?;
+    let mut lookup = create_process_lookup(false)?;
     lookup.refresh()?;
     if mode == "snapshot" {
         let n = emit(lookup.as_ref(), &host)?;
         eprintln!("procnet: {n} sockets");
         return Ok(());
     }
+    // watch 形:ETW 运行时启动(windows 内核 trace;其余平台 no-op)后才轮询
+    lookup.start_runtime()?;
     loop {
         let n = emit(lookup.as_ref(), &host)?;
         eprintln!("procnet: {n} sockets");

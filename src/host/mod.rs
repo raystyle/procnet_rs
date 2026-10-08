@@ -696,6 +696,11 @@ pub trait ProcessLookup: Send + Sync {
         SocketSnapshot::default()
     }
 
+    /// 快照道的 UDP 远端提示(表道 UDP 无远端;windows ETW 面实现,余平台默认空)。
+    fn udp_remote_hints(&self) -> Vec<(crate::types::Protocol, std::net::SocketAddr, std::net::SocketAddr, u32, String)> {
+        Vec::new()
+    }
+
     /// Detection method name for display.
     fn get_detection_method(&self) -> &str;
 

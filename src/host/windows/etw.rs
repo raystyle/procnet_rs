@@ -90,6 +90,22 @@ impl EtwProcessCache {
         })
     }
 
+    /// 快照道 UDP 远端提示(REQ-076:表道 UDP 无远端,ETW 事件补;TTL 内视为活)。
+    pub(super) fn udp_entries(&self) -> Vec<(crate::types::ConnectionKey, u32, String)> {
+        let inner = read_recovering(&self.inner, CACHE_LOCK);
+        let now = Instant::now();
+        inner
+            .connections
+            .iter()
+            .filter(|(k, e)| {
+                k.protocol == crate::types::Protocol::Udp
+                    && k.remote_addr.port() != 0
+                    && now.duration_since(e.seen) <= ENTRY_TTL
+            })
+            .map(|(k, e)| (k.clone(), e.pid, e.name.clone()))
+            .collect()
+    }
+
     fn remember_process_name(&self, pid: u32, name: String) {
         if pid == 0 || name.is_empty() {
             return;
