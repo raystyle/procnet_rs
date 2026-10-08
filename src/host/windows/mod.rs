@@ -1,5 +1,6 @@
-// Windows process attribution via IP Helper API(procnet v1:ETW 未接,桩化;源件 vendor-pending/windows/etw.rs 留待后续批)。
+// Windows process attribution via ETW with an IP Helper API fallback.
 
+mod etw;
 mod process;
 
 use process::WindowsProcessLookup;
@@ -31,6 +32,6 @@ fn write_recovering<'a, T>(lock: &'a RwLock<T>, what: &str) -> RwLockWriteGuard<
 /// [`ProcessLookup::start_runtime`] is called.
 /// The `_use_pktap` parameter is ignored on Windows (macOS only).
 pub fn create_process_lookup(_use_pktap: bool) -> Result<Box<dyn ProcessLookup>> {
-    log::info!("Preparing Windows process lookup (IP Helper API; ETW stubbed v1)");
+    log::info!("Preparing Windows process lookup (ETW + IP Helper API)");
     Ok(Box::new(WindowsProcessLookup::new()?))
 }

@@ -1,20 +1,7 @@
 // Windows ETW process attribution with an IP Helper API fallback.
 
-/// ETW 桩(v1 未接;UDP 远端归属缺,见 vendor-pending/windows/etw.rs 后续批)
-mod etw_stub {
-    pub struct EtwProcessCache;
-    impl Default for EtwProcessCache {
-        fn default() -> Self { Self }
-    }
-    impl EtwProcessCache {
-        pub fn lookup(&self, _key: &crate::types::ConnectionKey) -> Option<(u32, String)> { None }
-    }
-    pub struct EtwAttribution;
-    impl EtwAttribution {
-        pub fn start() -> anyhow::Result<Self> { Ok(Self) }
-    }
-}
-use etw_stub::{EtwAttribution, EtwProcessCache};
+use super::etw::{EtwAttribution, EtwProcessCache};
+
 use super::{read_recovering, write_recovering};
 use crate::host::{
     ConnectionKey, DegradationReason, HostSocket, HostSocketState, HostTcpState, MatchQuality,
@@ -551,7 +538,7 @@ impl ProcessLookup for WindowsProcessLookup {
         }
         self.etw_start_attempted = true;
 
-        match EtwAttribution::start() {
+        match EtwAttribution::start(Arc::clone(&self.etw_cache)) {
             Ok(trace) => {
                 log::info!("Windows ETW process attribution enabled");
                 self.etw = Some(trace);
