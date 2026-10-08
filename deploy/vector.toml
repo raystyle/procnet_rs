@@ -3,6 +3,7 @@
 type = "exec"
 mode = "streaming"
 command = ["/usr/local/bin/procnet", "watch", "--interval", "30"]
+include_stderr = false
 decoding.codec = "json"
 framing.method = "newline_delimited"
 
@@ -21,7 +22,7 @@ database = "nsm"
 table = "proc_conns"
 auth.strategy = "basic"
 auth.user = "vector_writer"
-auth.password = "${VECTOR_CH_PASSWORD}"
+auth.password = "__VECTOR_CH_PASSWORD__"
 format = "json_each_row"
 skip_unknown_fields = true
 batch.timeout_secs = 5
