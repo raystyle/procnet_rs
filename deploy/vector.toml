@@ -11,7 +11,7 @@ framing.method = "newline_delimited"
 type = "remap"
 inputs = ["procnet"]
 source = '''
-.host = get_hostname!()
+.host = "__HOST_NAME__"
 '''
 
 [sinks.clickhouse]
